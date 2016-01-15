@@ -88,20 +88,6 @@ void help() {
 static void meta_set_color(int fd, enum cmd cmd, unsigned int color)
 {
 	switch (cmd) {
-	case CMD_ALL:
-		set_color(fd, CMD_PWR, color);
-		set_color(fd, CMD_LAN0, color);
-		set_color(fd, CMD_LAN1, color);
-		set_color(fd, CMD_LAN2, color);
-		set_color(fd, CMD_LAN3, color);
-		set_color(fd, CMD_LAN4, color);
-		set_color(fd, CMD_WAN, color);
-		set_color(fd, CMD_PCI1, color);
-		set_color(fd, CMD_PCI2, color);
-		set_color(fd, CMD_PCI3, color);
-		set_color(fd, CMD_USR1, color);
-		set_color(fd, CMD_USR2, color);
-		break;
 	case CMD_LAN:
 		set_color(fd, CMD_LAN0, color);
 		set_color(fd, CMD_LAN1, color);
@@ -123,20 +109,6 @@ static void meta_set_color(int fd, enum cmd cmd, unsigned int color)
 static void meta_set_status(int fd, enum cmd cmd, enum status status)
 {
 	switch (cmd) {
-	case CMD_ALL:
-		set_status(fd, CMD_PWR, status);
-		set_status(fd, CMD_LAN0, status);
-		set_status(fd, CMD_LAN1, status);
-		set_status(fd, CMD_LAN2, status);
-		set_status(fd, CMD_LAN3, status);
-		set_status(fd, CMD_LAN4, status);
-		set_status(fd, CMD_WAN, status);
-		set_status(fd, CMD_PCI1, status);
-		set_status(fd, CMD_PCI2, status);
-		set_status(fd, CMD_PCI3, status);
-		set_status(fd, CMD_USR1, status);
-		set_status(fd, CMD_USR2, status);
-		break;
 	case CMD_LAN:
 		set_status(fd, CMD_LAN0, status);
 		set_status(fd, CMD_LAN1, status);
