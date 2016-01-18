@@ -45,6 +45,7 @@ static struct map kw_cmd_map[] = {
 	{KW_ALL, CMD_ALL},
 	{KW_LAN, CMD_LAN},
 	{KW_INTEN, CMD_INTEN},
+	{KW_BINMASK, CMD_BINMASK},
 	{NULL, CMD_UNDEF}
 };
 
