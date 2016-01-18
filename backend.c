@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
+#include <linux/i2c-dev.h>
 
 #include "configuration.h"
 #include "arg_parser.h"
@@ -48,16 +49,6 @@ static char led_map[] = {
 	12 // ALL
 };
 
-static void backend_write(int fd, const void *buff, size_t len)
-{
-	int ret = write(fd, buff, len);
-	if (ret == 0) {
-		fprintf(stderr, "Nothing was written\n");
-	} else if (ret == -1) {
-		fprintf(stderr, "Write error: %s\n", strerror(errno));
-	}
-}
-
 static void get_rgb_parts(unsigned int color, unsigned char *r, unsigned char *g, unsigned char *b) {
 	*r = ((color & 0xFF0000) >> 2*8);
 	*g = ((color & 0x00FF00) >> 8);
@@ -66,8 +57,7 @@ static void get_rgb_parts(unsigned int color, unsigned char *r, unsigned char *g
 
 void set_intensity(int fd, unsigned int level)
 {
-	char w[] = { REG_BRIGHTNESS, level };
-	backend_write(fd, w, 2);
+	i2c_smbus_write_word_data(fd, REG_BRIGHTNESS, level);
 }
 
 void set_color(int fd, enum cmd cmd, unsigned int color)
@@ -81,23 +71,15 @@ void set_color(int fd, enum cmd cmd, unsigned int color)
 
 void set_status(int fd, enum cmd cmd, enum status status)
 {
-	char w_mode[2] = { REG_MODE, led_map[cmd] };
-	char w_state[2] = { REG_STATE, led_map[cmd] };
-
 	if (status == ST_DISABLE) {
-		w_mode[1] |= (1 << 4);
-		w_state[1] |= (0 << 4);
-		backend_write(fd, w_mode, 2);
-		backend_write(fd, w_state, 2);
+		i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (1 << 4));
+		i2c_smbus_write_byte_data(fd, REG_STATE, led_map[cmd] | (0 << 4));
 
 	} else if (status == ST_ENABLE) {
-		w_mode[1] |= (1 << 4);
-		w_state[1] |= (1 << 4);
-		backend_write(fd, w_mode, 2);
-		backend_write(fd, w_state, 2);
+		i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (1 << 4));
+		i2c_smbus_write_byte_data(fd, REG_STATE, led_map[cmd] | (1 << 4));
 
 	} else if (status == ST_AUTO) {
-		w_mode[1] |= (0 << 4);
-		backend_write(fd, w_mode, 2);
+		i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (0 << 4));
 	}
 }
