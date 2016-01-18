@@ -1,0 +1,7 @@
+Rainbow is part of Project Turris. This application is very closely connected
+with Turris Omnia router hardware and the most of this source code will be
+useless on any other HW.
+
+Rainbow is command line utility that enables to user to set status, color and
+intensity of all LEDs of Turris Omnia router. For more informations run command
+'rainbow --help'.
