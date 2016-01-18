@@ -192,7 +192,7 @@ int main(int argc, char **argv) {
 
 	while (argv[i] != NULL) {
 		if (parse_cmd(argv[i], &current_cmd)) {
-			fprintf(stderr, "Current device is %s\n", argv[i]);
+			// This is placeholder for "get intensity" feature
 
 		} else if (parse_status(argv[i], &status)) {
 			//This part has to be before color parser because "enable" is valid color in color parser
