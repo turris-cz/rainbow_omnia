@@ -59,7 +59,7 @@ static void get_rgb_parts(unsigned int color, unsigned char *r, unsigned char *g
 
 void set_intensity(int fd, unsigned int level)
 {
-	i2c_smbus_write_word_data(fd, REG_BRIGHTNESS, level);
+	i2c_smbus_write_byte_data(fd, REG_BRIGHTNESS, (char)level);
 }
 
 void set_color(int fd, enum cmd cmd, unsigned int color)
