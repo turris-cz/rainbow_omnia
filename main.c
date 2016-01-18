@@ -205,9 +205,18 @@ int main(int argc, char **argv) {
 	unsigned int color = 0;
 	unsigned int number = 0;
 
+	bool get_is_open = false;
+
 	while (argv[i] != NULL) {
 		if (parse_cmd(argv[i], &current_cmd)) {
-			// This is placeholder for "get intensity" feature
+			if (current_cmd == CMD_GET) {
+				get_is_open = true;
+
+			} else if (current_cmd == CMD_INTEN && get_is_open) {
+				int level;
+				get_intensity(devfd, &level);
+				printf("%d\n", level);
+			}
 
 		} else if (parse_status(argv[i], &status)) {
 			//This part has to be before color parser because "enable" is valid color in color parser

@@ -27,5 +27,6 @@
 void set_intensity(int fd, unsigned int level);
 void set_color(int fd, enum cmd cmd, unsigned int color);
 void set_status(int fd, enum cmd cmd, enum status status);
+void get_intensity(int fd, int *level);
 
 #endif //BACKEND_H

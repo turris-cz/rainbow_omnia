@@ -32,6 +32,7 @@
 #define REG_STATE 4
 #define REG_COLOR 5
 #define REG_BRIGHTNESS 7
+#define REG_GET_BRIGHTNESS 8
 
 static char led_map[] = {
 	11, // PWR
@@ -61,6 +62,18 @@ static void backend_write(int fd, const void *buff, size_t len)
 	}
 }
 
+static void backend_read(int fd, void *buff, size_t len)
+{
+	int ret = read(fd, buff, len);
+	if (ret == 0) {
+		fprintf(stderr, "Nothing was read\n");
+		exit(3);
+	} else if (ret == -1) {
+		fprintf(stderr, "Read error: %s\n", strerror(errno));
+		exit(3);
+	}
+}
+
 static void get_rgb_parts(unsigned int color, unsigned char *r, unsigned char *g, unsigned char *b) {
 	*r = ((color & 0xFF0000) >> 2*8);
 	*g = ((color & 0x00FF00) >> 8);
@@ -71,6 +84,14 @@ void set_intensity(int fd, unsigned int level)
 {
 	char w[] = { REG_BRIGHTNESS, level };
 	backend_write(fd, w, 2);
+}
+
+void get_intensity(int fd, int *level)
+{
+	char buffer[] = { REG_GET_BRIGHTNESS };
+	backend_write(fd, buffer, 1);
+	backend_read(fd, buffer, 1);
+	*level = buffer[0];
 }
 
 void set_color(int fd, enum cmd cmd, unsigned int color)
