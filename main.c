@@ -150,6 +150,22 @@ static void binmask(int fd, unsigned int mask)
 	binmask_set(fd, mask, 0x001, CMD_USR2);
 }
 
+struct cleanup_data {
+	int fd;
+};
+
+static struct cleanup_data cleanup;
+
+static void cleanup_on_exit(int status, void *arg)
+{
+	struct cleanup_data *data = (struct cleanup_data *) arg;
+
+	// For better readability: in case of normal exit keep close() in main()
+	if (status != 0) {
+		close(data->fd);
+	}
+}
+
 int main(int argc, char **argv) {
 	if (argc <= 1) {
 		help();
@@ -168,8 +184,6 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	bool was_input_error = false;
-
 	//Open memory raw device
 	int devfd = open(I2C_BUS, O_RDWR);
 	if (devfd < 0) {
@@ -181,6 +195,10 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Failed to bind slave address to 0x%02X\n", I2C_ADDR);
 		return 2;
 	}
+
+	// Now I have FD - prepare cleanup
+	cleanup.fd = devfd;
+	on_exit(cleanup_on_exit, &cleanup);
 
 	int i = optind;
 	enum cmd current_cmd = CMD_UNDEF;
@@ -212,24 +230,20 @@ int main(int argc, char **argv) {
 				fprintf(stderr,
 					"Parse error - unspecified command for number.\n"
 					"Use rainbow -h for help.\n");
-				was_input_error = true;
+				exit(1);
 				break;
 			}
 		} else {
 			fprintf(stderr,
 				"Parse error.\n"
 				"Use rainbow -h for help.\n");
-			was_input_error = true;
+			exit(1);
 			break;
 		}
 		i++;
 	}
 
 	close(devfd);
-
-	if (was_input_error) {
-		return 1;
-	}
 
 	return 0;
 }

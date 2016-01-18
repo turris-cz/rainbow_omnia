@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <linux/i2c-dev.h>
+#include <stdlib.h>
 
 #include "configuration.h"
 #include "arg_parser.h"
@@ -59,7 +60,11 @@ static void get_rgb_parts(unsigned int color, unsigned char *r, unsigned char *g
 
 void set_intensity(int fd, unsigned int level)
 {
-	i2c_smbus_write_byte_data(fd, REG_BRIGHTNESS, (char)level);
+	int ret = i2c_smbus_write_byte_data(fd, REG_BRIGHTNESS, (char)level);
+	if (ret < 0) {
+		fprintf(stderr, "Failed to write brightness level\n");
+		exit(3);
+	}
 }
 
 void set_color(int fd, enum cmd cmd, unsigned int color)
@@ -67,21 +72,30 @@ void set_color(int fd, enum cmd cmd, unsigned int color)
 	unsigned char r, g, b;
 	get_rgb_parts(color, &r, &g, &b);
 
-	i2c_smbus_write_word_data(fd, REG_COLOR1, led_map[cmd] | (r << 8));
-	i2c_smbus_write_word_data(fd, REG_COLOR2, g | (b << 8));
+	int ret1 = i2c_smbus_write_word_data(fd, REG_COLOR1, led_map[cmd] | (r << 8));
+	int ret2 = i2c_smbus_write_word_data(fd, REG_COLOR2, g | (b << 8));
+	if (ret1 < 0 || ret2 < 0) {
+		fprintf(stderr, "Failed to write color\n");
+		exit(3);
+	}
 }
 
 void set_status(int fd, enum cmd cmd, enum status status)
 {
+	int ret1 = 0, ret2 = 0;
 	if (status == ST_DISABLE) {
-		i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (1 << 4));
-		i2c_smbus_write_byte_data(fd, REG_STATE, led_map[cmd] | (0 << 4));
+		ret1 = i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (1 << 4));
+		ret2 = i2c_smbus_write_byte_data(fd, REG_STATE, led_map[cmd] | (0 << 4));
 
 	} else if (status == ST_ENABLE) {
-		i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (1 << 4));
-		i2c_smbus_write_byte_data(fd, REG_STATE, led_map[cmd] | (1 << 4));
+		ret1 = i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (1 << 4));
+		ret2 = i2c_smbus_write_byte_data(fd, REG_STATE, led_map[cmd] | (1 << 4));
 
 	} else if (status == ST_AUTO) {
-		i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (0 << 4));
+		ret1 = i2c_smbus_write_byte_data(fd, REG_MODE, led_map[cmd] | (0 << 4));
+	}
+	if (ret1 < 0 || ret2 < 0) {
+		fprintf(stderr, "Failed to write status\n");
+		exit(3);
 	}
 }
