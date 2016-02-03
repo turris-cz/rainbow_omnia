@@ -230,14 +230,12 @@ int main(int argc, char **argv) {
 					"Parse error - unspecified command for number.\n"
 					"Use rainbow -h for help.\n");
 				exit(1);
-				break;
 			}
 		} else {
 			fprintf(stderr,
 				"Parse error.\n"
 				"Use rainbow -h for help.\n");
 			exit(1);
-			break;
 		}
 		i++;
 	}
