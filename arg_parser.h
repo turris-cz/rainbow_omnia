@@ -57,24 +57,24 @@ enum status {
 enum cmd {
 	CMD_UNDEF = -1,
 // Do NOT change order below!!
-	CMD_PWR = 0,
-	CMD_LAN0 = 1,
-	CMD_LAN1 = 2,
-	CMD_LAN2 = 3,
-	CMD_LAN3 = 4,
-	CMD_LAN4 = 5,
-	CMD_WAN = 6,
-	CMD_PCI1 = 7,
-	CMD_PCI2 = 8,
-	CMD_PCI3 = 9,
-	CMD_USR1 = 10,
-	CMD_USR2 = 11,
-	CMD_ALL = 12,
+	CMD_PWR,
+	CMD_LAN0,
+	CMD_LAN1,
+	CMD_LAN2,
+	CMD_LAN3,
+	CMD_LAN4,
+	CMD_WAN,
+	CMD_PCI1,
+	CMD_PCI2,
+	CMD_PCI3,
+	CMD_USR1,
+	CMD_USR2,
+	CMD_ALL,
 // Do NOT change order above!!
-	CMD_LAN = 13,
-	CMD_INTEN = 14,
-	CMD_BINMASK = 15,
-	CMD_GET = 16
+	CMD_LAN,
+	CMD_INTEN,
+	CMD_BINMASK,
+	CMD_GET
 };
 
 bool parse_cmd(const char *param, enum cmd *command);
