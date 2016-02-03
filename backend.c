@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "configuration.h"
 #include "arg_parser.h"
@@ -55,8 +56,10 @@ static void backend_write(int fd, const void *buff, size_t len)
 	int ret = write(fd, buff, len);
 	if (ret == 0) {
 		fprintf(stderr, "Nothing was written\n");
+		exit(3);
 	} else if (ret == -1) {
 		fprintf(stderr, "Write error: %s\n", strerror(errno));
+		exit(3);
 	}
 }
 
