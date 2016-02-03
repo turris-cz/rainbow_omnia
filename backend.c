@@ -31,8 +31,7 @@
 
 #define REG_MODE 3
 #define REG_STATE 4
-#define REG_COLOR1 5
-#define REG_COLOR2 6
+#define REG_COLOR 5
 #define REG_BRIGHTNESS 7
 
 static char led_map[] = {
@@ -80,12 +79,8 @@ void set_color(int fd, enum cmd cmd, unsigned int color)
 	unsigned char r, g, b;
 	get_rgb_parts(color, &r, &g, &b);
 
-	int ret1 = i2c_smbus_write_word_data(fd, REG_COLOR1, led_map[cmd] | (r << 8));
-	int ret2 = i2c_smbus_write_word_data(fd, REG_COLOR2, g | (b << 8));
-	if (ret1 < 0 || ret2 < 0) {
-		fprintf(stderr, "Failed to write color\n");
-		exit(3);
-	}
+	char w[5] = { REG_COLOR, led_map[cmd], r, g, b};
+	backend_write(fd, w, 5);
 }
 
 void set_status(int fd, enum cmd cmd, enum status status)
