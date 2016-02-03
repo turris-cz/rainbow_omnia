@@ -190,14 +190,14 @@ int main(int argc, char **argv) {
 		return 2;
 	}
 
+	// Now I have FD - prepare cleanup
+	cleanup.fd = devfd;
+	on_exit(cleanup_on_exit, &cleanup);
+
 	if (ioctl(devfd, I2C_SLAVE, I2C_ADDR) < 0) {
 		fprintf(stderr, "Failed to bind slave address to 0x%02X\n", I2C_ADDR);
 		return 2;
 	}
-
-	// Now I have FD - prepare cleanup
-	cleanup.fd = devfd;
-	on_exit(cleanup_on_exit, &cleanup);
 
 	int i = optind;
 	enum cmd current_cmd = CMD_UNDEF;
