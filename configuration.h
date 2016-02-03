@@ -1,5 +1,5 @@
 /*
- * Rainbow is tool for changing color and status of LEDs of the Turris router
+ * Rainbow is a tool for changing color and status of the LEDs of the Turris router
  *
  * Copyright (C) 2016 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
  *

@@ -1,5 +1,5 @@
 /*
- * Rainbow is tool for changing color and status of LEDs of the Turris router
+ * Rainbow is a tool for changing color and status of the LEDs of the Turris router
  *
  * Copyright (C) 2016 CZ.NIC, z.s.p.o. (http://www.nic.cz/)
  *
@@ -69,13 +69,13 @@ void help() {
 		"  status of LEDs. MSB is PWR LED and LSB is USR2. Max value is 4095 or 0xFFF.\n"
 		"\n"
 		"'get' VALUE, where:\n"
-		"  VALUE is 'intensity' (no more getters aren't available for now)\n"
+		"  VALUE is 'intensity' (no more getters are available for now)\n"
 		"\n"
 		"Examples:\n"
 		"rainbow all blue auto - reset status of all LEDs and set their color to blue\n"
 		"rainbow all blue pwr red - set color of all LEDs to blue except the Power one\n"
-		"rainbow all enable wan auto - all LEDs will shining except the LED of WAN port\n"
-		"                              that will flashing according to traffic\n"
+		"rainbow all enable wan auto - all LEDs will be shining except the LED of WAN port\n"
+		"                              that will flash according to traffic\n"
 
 
 
