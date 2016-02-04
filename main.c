@@ -220,10 +220,16 @@ int main(int argc, char **argv) {
 			if (current_cmd == CMD_INTEN) {
 				if (number <= MAX_INTENSITY_LEVEL) {
 					set_intensity(devfd, number);
+				} else {
+					fprintf(stderr, "Intensity is out of range [0-100]\n");
+					return 1;
 				}
 			} else if (current_cmd == CMD_BINMASK) {
 				if (number <= MAX_BINMASK_VALUE) {
 					binmask(devfd, number);
+				} else {
+					fprintf(stderr, "Number is out of range [0-0xFFF]\n");
+					return 1;
 				}
 			} else {
 				fprintf(stderr,
