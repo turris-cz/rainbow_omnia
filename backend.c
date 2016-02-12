@@ -72,7 +72,12 @@ static void backend_read(int fd, char *buff, size_t len)
 {
 	while (len > 0) {
 		int ret = read(fd, buff, len);
-		if (ret == -1) {
+		if (ret == 0) {
+			// EOF is really unexpected - some troubles with I2C?
+			fprintf(stderr, "Read error: Unexpected EOF\n");
+			exit(3);
+
+		} else if (ret == -1) {
 			if (errno == EINTR) {
 				continue;
 			} else {
