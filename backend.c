@@ -50,27 +50,39 @@ static char led_map[] = {
 	12 // ALL
 };
 
-static void backend_write(int fd, const void *buff, size_t len)
+static void backend_write(int fd, const char *buff, size_t len)
 {
-	int ret = write(fd, buff, len);
-	if (ret == 0) {
-		fprintf(stderr, "Nothing was written\n");
-		exit(3);
-	} else if (ret == -1) {
-		fprintf(stderr, "Write error: %s\n", strerror(errno));
-		exit(3);
+	while (len > 0) {
+		int ret = write(fd, buff, len);
+		if (ret == -1) {
+			if (errno == EINTR) {
+				continue;
+			} else {
+				fprintf(stderr, "Write error: %s\n", strerror(errno));
+				exit(3);
+			}
+		}
+
+		buff += ret;
+		len -= ret;
 	}
 }
 
-static void backend_read(int fd, void *buff, size_t len)
+static void backend_read(int fd, char *buff, size_t len)
 {
-	int ret = read(fd, buff, len);
-	if (ret == 0) {
-		fprintf(stderr, "Nothing was read\n");
-		exit(3);
-	} else if (ret == -1) {
-		fprintf(stderr, "Read error: %s\n", strerror(errno));
-		exit(3);
+	while (len > 0) {
+		int ret = read(fd, buff, len);
+		if (ret == -1) {
+			if (errno == EINTR) {
+				continue;
+			} else {
+				fprintf(stderr, "Read error: %s\n", strerror(errno));
+				exit(3);
+			}
+		}
+
+		buff += ret;
+		len -= ret;
 	}
 }
 
