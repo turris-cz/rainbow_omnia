@@ -77,6 +77,10 @@ static bool get_color_from_name(const char *color_name, unsigned int *color)
 
 bool parse_cmd(const char *param, enum cmd *command)
 {
+	if (param == NULL) {
+		return false;
+	}
+
 	for (size_t i = 0; kw_cmd_map[i].kw != NULL; i++) {
 		if (strcmp(param, kw_cmd_map[i].kw) == 0) {
 			*command = kw_cmd_map[i].cmd;
@@ -89,6 +93,10 @@ bool parse_cmd(const char *param, enum cmd *command)
 
 bool parse_color(const char *param, unsigned int *color)
 {
+	if (param == NULL) {
+		return false;
+	}
+
 	//Is param pre-defined color?
 	if (get_color_from_name(param, color)) {
 		return true;
@@ -114,6 +122,10 @@ bool parse_color(const char *param, unsigned int *color)
 
 bool parse_status(const char *param, enum status *status)
 {
+	if (param == NULL) {
+		return false;
+	}
+
 	if (strcmp(param, KW_ENABLE) == 0) {
 		*status = ST_ENABLE;
 		return true;
@@ -132,6 +144,10 @@ bool parse_status(const char *param, enum status *status)
 
 bool parse_number(const char *param, unsigned int *number)
 {
+	if (param == NULL) {
+		return false;
+	}
+
 	char *endptr = (char *)param;
 	long int tmp_number = strtol(param, &endptr, 0);
 
