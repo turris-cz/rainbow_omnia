@@ -77,9 +77,30 @@ enum cmd {
 	CMD_GET
 };
 
-bool parse_cmd(const char *param, enum cmd *command);
-bool parse_color(const char *param, unsigned int *color);
-bool parse_status(const char *param, enum status *status);
-bool parse_number(const char *param, unsigned int *number);
+enum token_type {
+	TOK_UNDEF = -1,
+	TOK_CMD,
+	TOK_NUMBER,
+	TOK_COLOR,
+	TOK_STATUS,
+	TOK_EOF
+};
+
+struct token {
+	enum token_type type;
+	union {
+		enum cmd cmd;
+		unsigned int number;
+		unsigned int color;
+		enum status status;
+	} data;
+	const char *raw;
+};
+
+struct tokenizer;
+
+struct token next_token(struct tokenizer *tokenizer);
+struct tokenizer *tokenizer_init(char **argv, int from);
+void tokenizer_destroy(struct tokenizer *tokenizer);
 
 #endif //ARG_PARSER_H

@@ -63,6 +63,11 @@ static struct color colors[] = {
 	{ NULL,	0}
 };
 
+struct tokenizer {
+	char **argv;
+	int pos;
+};
+
 static bool get_color_from_name(const char *color_name, unsigned int *color)
 {
 	for (size_t i = 0; colors[i].name != NULL; i++) {
@@ -75,7 +80,7 @@ static bool get_color_from_name(const char *color_name, unsigned int *color)
 	return false;
 }
 
-bool parse_cmd(const char *param, enum cmd *command)
+static bool parse_cmd(const char *param, enum cmd *command)
 {
 	if (param == NULL) {
 		return false;
@@ -91,7 +96,7 @@ bool parse_cmd(const char *param, enum cmd *command)
 	return false;
 }
 
-bool parse_color(const char *param, unsigned int *color)
+static bool parse_color(const char *param, unsigned int *color)
 {
 	if (param == NULL) {
 		return false;
@@ -128,7 +133,7 @@ bool parse_color(const char *param, unsigned int *color)
 	return false;
 }
 
-bool parse_status(const char *param, enum status *status)
+static bool parse_status(const char *param, enum status *status)
 {
 	if (param == NULL) {
 		return false;
@@ -150,7 +155,7 @@ bool parse_status(const char *param, enum status *status)
 	return false;
 }
 
-bool parse_number(const char *param, unsigned int *number)
+static bool parse_number(const char *param, unsigned int *number)
 {
 	if (param == NULL) {
 		return false;
@@ -167,4 +172,52 @@ bool parse_number(const char *param, unsigned int *number)
 	*number = tmp_number;
 
 	return true;
+}
+
+struct tokenizer *tokenizer_init(char **argv, int from)
+{
+	struct tokenizer *ret = malloc(sizeof(*ret));
+	if (!ret) {
+		return NULL;
+	}
+
+	ret->argv = argv;
+	ret->pos = from;
+
+	return ret;
+}
+
+void tokenizer_destroy(struct tokenizer *tokenizer)
+{
+	free(tokenizer);
+}
+
+struct token next_token(struct tokenizer *tokenizer)
+{
+	struct token token = (struct token) {
+		.type = TOK_UNDEF,
+		.raw = tokenizer->argv[tokenizer->pos]
+	};
+
+	if (tokenizer->argv[tokenizer->pos] == NULL) {
+		token.type = TOK_EOF;
+
+	} else if (parse_cmd(tokenizer->argv[tokenizer->pos], &token.data.cmd)) {
+		token.type = TOK_CMD;
+
+	} else if (parse_status(tokenizer->argv[tokenizer->pos], &token.data.status)) {
+		//This part has to be before color parser because "enable" is valid color in color parser
+		token.type = TOK_STATUS;
+
+	} else if (parse_color(tokenizer->argv[tokenizer->pos], &token.data.color)) {
+		token.type = TOK_COLOR;
+
+	} else if (parse_number(tokenizer->argv[tokenizer->pos], &token.data.number)) {
+		token.type = TOK_NUMBER;
+
+	}
+	// Else: keep value TOK_UNDEF
+
+	tokenizer->pos++;
+	return token;
 }

@@ -151,6 +151,7 @@ static void binmask(int fd, unsigned int mask)
 
 struct cleanup_data {
 	int fd;
+	struct tokenizer *tokenizer;
 };
 
 static struct cleanup_data cleanup;
@@ -162,6 +163,7 @@ static void cleanup_on_exit(int status, void *arg)
 	// For better readability: in case of normal exit keep close() in main()
 	if (status != 0) {
 		close(data->fd);
+		tokenizer_destroy(data->tokenizer);
 	}
 }
 
@@ -183,6 +185,12 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	struct tokenizer *tokenizer = tokenizer_init(argv, optind);
+	if (!tokenizer) {
+		fprintf(stderr, "Memory allocation error\n");
+		exit(2);
+	}
+
 	//Open memory raw device
 	int devfd = open(I2C_BUS, O_RDWR);
 	if (devfd < 0) {
@@ -192,6 +200,7 @@ int main(int argc, char **argv) {
 
 	// Now I have FD - prepare cleanup
 	cleanup.fd = devfd;
+	cleanup.tokenizer = tokenizer;
 	on_exit(cleanup_on_exit, &cleanup);
 
 	if (ioctl(devfd, I2C_SLAVE, I2C_ADDR) < 0) {
@@ -199,62 +208,93 @@ int main(int argc, char **argv) {
 		return 2;
 	}
 
-	int i = optind;
 	enum cmd current_cmd = CMD_UNDEF;
-	enum status status;
-	unsigned int color = 0;
-	unsigned int number = 0;
+	bool eof = false;
 
-	bool get_is_open = false;
+	while (!eof) {
+		struct token token = next_token(tokenizer);
 
-	while (argv[i] != NULL) {
-		if (parse_cmd(argv[i], &current_cmd)) {
-			if (current_cmd == CMD_GET) {
-				get_is_open = true;
-
-			} else if (current_cmd == CMD_INTEN && get_is_open) {
+		switch (token.type) {
+		case TOK_UNDEF:
+			fprintf(stderr, "Undefined sequence: %s is some garbage\n", token.raw);
+			return 1;
+		case TOK_CMD:
+			switch (token.data.cmd) {
+			case CMD_GET:
+				token = next_token(tokenizer);
+				if (token.type != TOK_CMD) {
+					fprintf(stderr, "Specify item for get command\n");
+					return 1;
+				}
+				if (token.data.cmd != CMD_INTEN) {
+					fprintf(stderr, "Unknown getter\n");
+					return 1;
+				}
 				int level;
 				get_intensity(devfd, &level);
 				printf("%d\n", level);
-			}
-
-		} else if (parse_status(argv[i], &status)) {
-			//This part has to be before color parser because "enable" is valid color in color parser
-			meta_set_status(devfd, current_cmd, status);
-
-		} else if (parse_color(argv[i], &color)) {
-			meta_set_color(devfd, current_cmd, color);
-
-		} else if (parse_number(argv[i], &number)) {
-			if (current_cmd == CMD_INTEN) {
-				if (number <= MAX_INTENSITY_LEVEL) {
-					set_intensity(devfd, number);
+				break;
+			case CMD_INTEN:
+				token = next_token(tokenizer);
+				if (token.type != TOK_NUMBER) {
+					fprintf(stderr, "Specify intensity level\n");
+					return 1;
+				}
+				if (token.data.number <= MAX_INTENSITY_LEVEL) {
+					set_intensity(devfd, token.data.number);
 				} else {
 					fprintf(stderr, "Intensity is out of range [0-100]\n");
 					return 1;
 				}
-			} else if (current_cmd == CMD_BINMASK) {
-				if (number <= MAX_BINMASK_VALUE) {
-					binmask(devfd, number);
+				break;
+			case CMD_BINMASK:
+				token = next_token(tokenizer);
+				if (token.type != TOK_NUMBER) {
+					fprintf(stderr, "Specify binary mask\n");
+					return 1;
+				}
+				if (token.data.number <= MAX_BINMASK_VALUE) {
+					binmask(devfd, token.data.number);
 				} else {
 					fprintf(stderr, "Number is out of range [0-0xFFF]\n");
 					return 1;
 				}
-			} else {
-				fprintf(stderr,
-					"Parse error - unspecified command for number.\n"
-					"Use rainbow -h for help.\n");
-				exit(1);
+				break;
+			case CMD_UNDEF:
+				fprintf(stderr, "Undefined command\n");
+				return 1;
+			default: // The rest of command is some real device
+				current_cmd = token.data.cmd;
+				break;
 			}
-		} else {
-			fprintf(stderr,
-				"Parse error.\n"
-				"Use rainbow -h for help.\n");
-			exit(1);
+			break;
+		case TOK_NUMBER:
+			fprintf(stderr, "Unexpected value: %s\n", token.raw);
+			return 1;
+		case TOK_COLOR:
+			if (current_cmd == CMD_UNDEF) {
+				fprintf(stderr, "Trying to configure undefined device\n");
+				return 1;
+			}
+			meta_set_color(devfd, current_cmd, token.data.color);
+			break;
+
+		case TOK_STATUS:
+			if (current_cmd == CMD_UNDEF) {
+				fprintf(stderr, "Trying to configure undefined device\n");
+				return 1;
+			}
+			meta_set_status(devfd, current_cmd, token.data.status);
+			break;
+
+		case TOK_EOF:
+			eof = true;
+			break;
 		}
-		i++;
+
 	}
 
+	tokenizer_destroy(tokenizer);
 	close(devfd);
 
 	return 0;
