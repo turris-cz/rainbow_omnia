@@ -226,13 +226,14 @@ int main(int argc, char **argv) {
 					fprintf(stderr, "Specify item for get command\n");
 					return 1;
 				}
-				if (token.data.cmd != CMD_INTEN) {
+				if (token.data.cmd == CMD_INTEN) {
+					int level;
+					get_intensity(devfd, &level);
+					printf("%d\n", level);
+				} else {
 					fprintf(stderr, "Unknown getter\n");
 					return 1;
 				}
-				int level;
-				get_intensity(devfd, &level);
-				printf("%d\n", level);
 				break;
 			case CMD_INTEN:
 				token = next_token(tokenizer);
