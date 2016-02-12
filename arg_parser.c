@@ -103,7 +103,15 @@ bool parse_color(const char *param, unsigned int *color)
 	}
 
 	//Is param color in format AABBCC?
+	//No 0x prefix is accepted
 	if (strlen(param) == 6) {
+		for (size_t i = 0; i < 6; i++) {
+			if ((param[i] < '0' || param[i] > '9') &&
+				(param[i] < 'A' || param[i] > 'F') &&
+				(param[i] < 'A' || param[i] > 'F')) {
+					return false;
+			}
+		}
 		char *endptr = (char *)param;
 		long int tmp_number = strtol(param, &endptr, 16);
 
