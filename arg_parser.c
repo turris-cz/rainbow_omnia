@@ -113,7 +113,7 @@ static bool parse_color(const char *param, unsigned int *color)
 		for (size_t i = 0; i < 6; i++) {
 			if ((param[i] < '0' || param[i] > '9') &&
 				(param[i] < 'A' || param[i] > 'F') &&
-				(param[i] < 'A' || param[i] > 'F')) {
+				(param[i] < 'a' || param[i] > 'f')) {
 					return false;
 			}
 		}
