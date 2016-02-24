@@ -154,16 +154,18 @@ struct cleanup_data {
 	struct tokenizer *tokenizer;
 };
 
-static struct cleanup_data cleanup;
+static struct cleanup_data cleanup = {
+	.fd = -1,
+	.tokenizer = NULL
+};
 
-static void cleanup_on_exit(int status, void *arg)
+static void cleanup_atexit()
 {
-	struct cleanup_data *data = (struct cleanup_data *) arg;
-
-	// For better readability: in case of normal exit keep close() in main()
-	if (status != 0) {
-		close(data->fd);
-		tokenizer_destroy(data->tokenizer);
+	if (cleanup.fd != -1) {
+		close(cleanup.fd);
+	}
+	if (cleanup.tokenizer) {
+		tokenizer_destroy(cleanup.tokenizer);
 	}
 }
 
@@ -201,7 +203,7 @@ int main(int argc, char **argv) {
 	// Now I have FD - prepare cleanup
 	cleanup.fd = devfd;
 	cleanup.tokenizer = tokenizer;
-	on_exit(cleanup_on_exit, &cleanup);
+	atexit(cleanup_atexit);
 
 	if (ioctl(devfd, I2C_SLAVE, I2C_ADDR) < 0) {
 		fprintf(stderr, "Failed to bind slave address to 0x%02X\n", I2C_ADDR);
@@ -294,9 +296,6 @@ int main(int argc, char **argv) {
 		}
 
 	}
-
-	tokenizer_destroy(tokenizer);
-	close(devfd);
 
 	return 0;
 }
