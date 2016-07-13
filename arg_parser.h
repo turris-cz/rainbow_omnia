@@ -56,7 +56,6 @@ enum status {
 
 enum cmd {
 	CMD_UNDEF = -1,
-// Do NOT change order below!!
 	CMD_PWR,
 	CMD_LAN0,
 	CMD_LAN1,
@@ -70,7 +69,6 @@ enum cmd {
 	CMD_USR1,
 	CMD_USR2,
 	CMD_ALL,
-// Do NOT change order above!!
 	CMD_LAN,
 	CMD_INTEN,
 	CMD_BINMASK,

@@ -78,15 +78,15 @@ void help() {
 	);
 }
 
-static void meta_set_color(int fd, enum cmd cmd, unsigned int color)
+static void meta_set_color(enum cmd cmd, unsigned int color)
 {
 	switch (cmd) {
 	case CMD_LAN:
-		set_color(fd, CMD_LAN0, color);
-		set_color(fd, CMD_LAN1, color);
-		set_color(fd, CMD_LAN2, color);
-		set_color(fd, CMD_LAN3, color);
-		set_color(fd, CMD_LAN4, color);
+		set_color(CMD_LAN0, color);
+		set_color(CMD_LAN1, color);
+		set_color(CMD_LAN2, color);
+		set_color(CMD_LAN3, color);
+		set_color(CMD_LAN4, color);
 		break;
 	case CMD_UNDEF:
 	case CMD_INTEN:
@@ -95,19 +95,19 @@ static void meta_set_color(int fd, enum cmd cmd, unsigned int color)
 		assert(NULL);
 		break;
 	default:
-		set_color(fd, cmd, color);
+		set_color(cmd, color);
 	}
 }
 
-static void meta_set_status(int fd, enum cmd cmd, enum status status)
+static void meta_set_status(enum cmd cmd, enum status status)
 {
 	switch (cmd) {
 	case CMD_LAN:
-		set_status(fd, CMD_LAN0, status);
-		set_status(fd, CMD_LAN1, status);
-		set_status(fd, CMD_LAN2, status);
-		set_status(fd, CMD_LAN3, status);
-		set_status(fd, CMD_LAN4, status);
+		set_status(CMD_LAN0, status);
+		set_status(CMD_LAN1, status);
+		set_status(CMD_LAN2, status);
+		set_status(CMD_LAN3, status);
+		set_status(CMD_LAN4, status);
 		break;
 	case CMD_UNDEF:
 	case CMD_INTEN:
@@ -116,33 +116,33 @@ static void meta_set_status(int fd, enum cmd cmd, enum status status)
 		assert(NULL);
 		break;
 	default:
-		set_status(fd, cmd, status);
+		set_status(cmd, status);
 	}
 }
 
-static void binmask_set(int fd, unsigned mask, unsigned position, enum cmd cmd)
+static void binmask_set(unsigned mask, unsigned position, enum cmd cmd)
 {
 	if (mask & position) {
-		set_status(fd, cmd, ST_ENABLE);
+		set_status(cmd, ST_ENABLE);
 	} else {
-		set_status(fd, cmd, ST_DISABLE);
+		set_status(cmd, ST_DISABLE);
 	}
 }
 
-static void binmask(int fd, unsigned int mask)
+static void binmask(unsigned int mask)
 {
-	binmask_set(fd, mask, 0x800, CMD_PWR);
-	binmask_set(fd, mask, 0x400, CMD_LAN0);
-	binmask_set(fd, mask, 0x200, CMD_LAN1);
-	binmask_set(fd, mask, 0x100, CMD_LAN2);
-	binmask_set(fd, mask, 0x080, CMD_LAN3);
-	binmask_set(fd, mask, 0x040, CMD_LAN4);
-	binmask_set(fd, mask, 0x020, CMD_WAN);
-	binmask_set(fd, mask, 0x010, CMD_PCI1);
-	binmask_set(fd, mask, 0x008, CMD_PCI2);
-	binmask_set(fd, mask, 0x004, CMD_PCI3);
-	binmask_set(fd, mask, 0x002, CMD_USR1);
-	binmask_set(fd, mask, 0x001, CMD_USR2);
+	binmask_set(mask, 0x800, CMD_PWR);
+	binmask_set(mask, 0x400, CMD_LAN0);
+	binmask_set(mask, 0x200, CMD_LAN1);
+	binmask_set(mask, 0x100, CMD_LAN2);
+	binmask_set(mask, 0x080, CMD_LAN3);
+	binmask_set(mask, 0x040, CMD_LAN4);
+	binmask_set(mask, 0x020, CMD_WAN);
+	binmask_set(mask, 0x010, CMD_PCI1);
+	binmask_set(mask, 0x008, CMD_PCI2);
+	binmask_set(mask, 0x004, CMD_PCI3);
+	binmask_set(mask, 0x002, CMD_USR1);
+	binmask_set(mask, 0x001, CMD_USR2);
 }
 
 struct cleanup_data {
@@ -151,15 +151,11 @@ struct cleanup_data {
 };
 
 static struct cleanup_data cleanup = {
-	.fd = -1,
 	.tokenizer = NULL
 };
 
 static void cleanup_atexit()
 {
-	if (cleanup.fd != -1) {
-		close(cleanup.fd);
-	}
 	if (cleanup.tokenizer) {
 		tokenizer_destroy(cleanup.tokenizer);
 	}
@@ -189,22 +185,9 @@ int main(int argc, char **argv) {
 		exit(2);
 	}
 
-	//Open memory raw device
-	int devfd = open(I2C_BUS, O_RDWR);
-	if (devfd < 0) {
-		fprintf(stderr, "Cannot open I2C bus %s\n", I2C_BUS);
-		return 2;
-	}
-
 	// Now I have FD - prepare cleanup
-	cleanup.fd = devfd;
 	cleanup.tokenizer = tokenizer;
 	atexit(cleanup_atexit);
-
-	if (ioctl(devfd, I2C_SLAVE, I2C_ADDR) < 0) {
-		fprintf(stderr, "Failed to bind slave address to 0x%02X\n", I2C_ADDR);
-		return 2;
-	}
 
 	enum cmd current_cmd = CMD_UNDEF;
 	bool eof = false;
@@ -226,7 +209,7 @@ int main(int argc, char **argv) {
 				}
 				if (token.data.cmd == CMD_INTEN) {
 					int level;
-					get_intensity(devfd, &level);
+					get_intensity(&level);
 					printf("%d\n", level);
 				} else {
 					fprintf(stderr, "Unknown getter\n");
@@ -240,7 +223,7 @@ int main(int argc, char **argv) {
 					return 1;
 				}
 				if (token.data.number <= MAX_INTENSITY_LEVEL) {
-					set_intensity(devfd, token.data.number);
+					set_intensity(token.data.number);
 				} else {
 					fprintf(stderr, "Intensity is out of range [0-100]\n");
 					return 1;
@@ -253,7 +236,7 @@ int main(int argc, char **argv) {
 					return 1;
 				}
 				if (token.data.number <= MAX_BINMASK_VALUE) {
-					binmask(devfd, token.data.number);
+					binmask(token.data.number);
 				} else {
 					fprintf(stderr, "Number is out of range [0-0xFFF]\n");
 					return 1;
@@ -275,7 +258,7 @@ int main(int argc, char **argv) {
 				fprintf(stderr, "Trying to configure undefined device\n");
 				return 1;
 			}
-			meta_set_color(devfd, current_cmd, token.data.color);
+			meta_set_color(current_cmd, token.data.color);
 			break;
 
 		case TOK_STATUS:
@@ -283,7 +266,7 @@ int main(int argc, char **argv) {
 				fprintf(stderr, "Trying to configure undefined device\n");
 				return 1;
 			}
-			meta_set_status(devfd, current_cmd, token.data.status);
+			meta_set_status(current_cmd, token.data.status);
 			break;
 
 		case TOK_EOF:

@@ -20,9 +20,6 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#define I2C_BUS "/dev/i2c-1"
-#define I2C_ADDR 0x2A
-
 #define MAX_BINMASK_VALUE 0xFFF
 #define MAX_INTENSITY_LEVEL 100
 
