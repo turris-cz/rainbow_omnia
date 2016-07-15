@@ -208,9 +208,7 @@ int main(int argc, char **argv) {
 					return 1;
 				}
 				if (token.data.cmd == CMD_INTEN) {
-					int level;
-					get_intensity(&level);
-					printf("%d\n", level);
+					printf("%d\n", get_intensity());
 				} else {
 					fprintf(stderr, "Unknown getter\n");
 					return 1;

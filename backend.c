@@ -119,7 +119,7 @@ void set_intensity(unsigned int level)
 	backend_write(path, value);
 }
 
-void get_intensity(int *level)
+int get_intensity()
 {
 	/*
 	The maximum value of brightness/intensity is 100. Greater number (longer
@@ -127,16 +127,19 @@ void get_intensity(int *level)
 	*/
 	const size_t bufflen = 4;
 	char buff[bufflen];
+	int level;
 
 	const char *path = aprintf("%s/%s", SYS_PATH, "global_brightness");
 	backend_read(path, buff, bufflen);
 	buff[bufflen - 1] = '\0'; // Just to make sure we have one
 
-	int ret = sscanf(buff, "%d", level);
+	int ret = sscanf(buff, "%d", &level);
 	if (ret != 1) {
 		fprintf(stderr, "Read error: %s\n", strerror(errno));
 		exit(3);
 	}
+
+	return level;
 }
 
 void set_color(enum cmd cmd, unsigned int color)
